@@ -1,20 +1,36 @@
 const Tour = require('../models/tourModels')
 exports.getAllTour = async (req,res)=>{
     try{
-        //excluding page, sort, limit and field from query object
+        //1)excluding page, sort, limit and field from query object
         const queryObj = {...req.query};
         const excludeFields = ['page', 'sort', 'limit','field'];
         excludeFields.forEach(el => delete queryObj[el]);
         //will give data from query string from URL
         //using URL query string to filter data: API filtering
 
-        //Advance URL query filtering as gt, gte, lt, lte
+        //2)Advance URL query filtering as gt, gte, lt, lte
         //normal mongoDB filter {difficulty: 'easy', duration: {$gte: 5}}
-        console.log(queryObj);// will get query without $ symbol we need to add it using replace 
         let queryStr = JSON.stringify(queryObj)//javaScript Object to json string
         queryStr = JSON.parse(queryStr.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`));// $gte
-        console.log(queryStr);
-        const tours = await Tour.find(queryStr)
+        let query = Tour.find(queryStr);
+
+        //3)Sorting: sorting data by price using URL query string
+        //e.g: localhost:8000/api/v1/tours?sort=price (default sort will be ASC)
+        //To sort it DESC localhost:8000/api/v1/tours?sort=-price
+        if(req.query.sort){
+            //if two data having same price will sort it by ratingsAverage
+            //localhost:8000/api/v1/tours?sort=price,ratingsAverage
+            //but in mongoose query will be sort('price ratingsAverage')
+            //so we need to convert query strng without ,
+            //console.log(req.query.sort); -price,ratingsAverage
+            const sortBy = req.query.sort.split(',').join(' ');
+            //console.log(sortBy); -price ratingAverage
+            query = query.sort(sortBy)
+        }else{
+            //sorting by default(on createdAt DESC) if no sort in query string 
+            qeuery = query.sort('-createdAt')
+        }
+        const tours = await query;
     res.status(200).json({
         status:'success',
         result: tours.length,
