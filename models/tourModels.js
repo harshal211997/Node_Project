@@ -57,6 +57,7 @@ const tourSchema = new Mongoose.Schema({
     createdAt:{
         type: Date,
         default: Date.now(), //return timestamp in ms
+        select : false
     },
     //tour will start at different dates e.g Dec-10, Feb-11
     startDates: {
