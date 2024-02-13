@@ -12,7 +12,6 @@ exports.getAllTour = async (req,res)=>{
         //normal mongoDB filter {difficulty: 'easy', duration: {$gte: 5}}
         let queryStr = JSON.stringify(queryObj)//javaScript Object to json string
         queryStr = JSON.parse(queryStr.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`));// $gte
-        console.log(queryStr);
         let query = Tour.find(queryStr);
 
         //3)Sorting: sorting data by price using URL query string
@@ -31,18 +30,18 @@ exports.getAllTour = async (req,res)=>{
             //sorting by default(on createdAt DESC) if no sort in query string 
             query = query.sort('-createdAt')
         }
-        //4.)field Limiting the result(fetchining only certain columns)
-        //to field limit result will use fields filter
-        //URL: localhost:8000/api/v1/tours?fields=name,duration,price
-        //In mongoDB query if we want to filter data for particular column will use select query
-        //e.g query.select('name duration price')
+        // //4.)field Limiting the result(fetchining only certain columns)
+        // //to field limit result will use fields filter
+        // //URL: localhost:8000/api/v1/tours?fields=name,duration,price
+        // //In mongoDB query if we want to filter data for particular column will use select query
+        // //e.g query.select('name duration price')
         if(req.query.fields){
             const fields = req.query.fields.split(',').join(' ');//name duration price
             //directly query object is not working here
-            query = Tour.find().select(fields)
+            query = query.select(fields)
         }else{
-            query = Tour.find().select('-__v');
-        }
+            query = query.select('-__v');
+         }
 
         //5.)Pagination and limit:
         //If we have 1000 data then its not good practice to show all data at a time
