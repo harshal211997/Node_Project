@@ -1,14 +1,10 @@
 const Tour = require('../models/tourModels')
-<<<<<<< HEAD
-const createApiFeature = require('../utils/tourApiFeatureUtil.js')
-=======
 //middle ware for top5Tours as a API alies name
 exports.topFiveTour = (req,res, next) =>{
     req.query.limit = '5';
     req.query.sort = '-ratingAverage,price'
     next();
 }
->>>>>>> 20762fff5b3e772b98d2ba2b44c3a456c9f7a5b1
 exports.getAllTour = async (req,res)=>{
     try{
         const apiFeature = new createApiFeature(Tour.find(),req.query);
