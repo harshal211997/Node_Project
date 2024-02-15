@@ -9,6 +9,7 @@ router.route('/top-5-tours').get(tour.topFiveTour, tour.getAllTour);
 
 //aggergation api
 router.route('/tours-stats').get(tour.getTourStats)
+router.route('/monthly-plan/:year').get(tour.getMonthlyPlan)
 //tours router
 router.route('/').get(tour.getAllTour).post(tour.createTour)
 router.route('/:id').get(tour.getTour).patch(tour.updateTour).delete(tour.deleteTour)
