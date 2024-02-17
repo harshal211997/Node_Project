@@ -119,9 +119,17 @@ tourSchema.pre('findOne',function(next){
 })
 tourSchema.post(/^find/, function(doc, next){
     console.log(`Query Took ${Date.now() - this.start} milliseconds!`);
-    console.log(doc);
+  //  console.log(doc);
     next();
 })
+
+//Aggregation middleware: this will point to aggregate object in our query
+tourSchema.pre('aggregate',function(next){
+    //adding new filter in aggregation middleware using pipline
+    this.pipeline().unshift({$match : {secrateTour : {$ne: true}}})
+    //console.log(this.pipeline());
+    next();
+});
 //Colletion
 const Tour = Mongoose.model('Tour', tourSchema)
 

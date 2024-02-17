@@ -121,11 +121,11 @@ exports.getTourStats = async (req,res) =>{
                 }
             },
             //match on result geting by query
-            {
-                $match :{
-                    _id: {$ne :'EASY'}
-                }
-            }
+            // {
+            //     $match :{
+            //         _id: {$ne :'EASY'}
+            //     }
+            // }
         ]);
         res.status(200).json({
             status: 'sucess',
