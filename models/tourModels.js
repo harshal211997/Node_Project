@@ -1,5 +1,7 @@
 const Mongoose =  require("mongoose")
 const slugify = require('slugify')
+//validator library for mongoose from npm
+const validator = require('validator')
 
 //schema declaration: dcocument structure
 const tourSchema = new Mongoose.Schema({
@@ -9,7 +11,9 @@ const tourSchema = new Mongoose.Schema({
         unique:true,//not a really validator
         trim: true,
         maxLength: [40, 'A tour name must have less or eqal than 40 character'],//data validator
-        minLength: [10, 'A tour name must have less or equal than 10 character']//data validator
+        minLength: [10, 'A tour name must have less or equal than 10 character'],//data validator
+        //validating string should contain alphabate from a-z using validator library
+        //validate: [validator.isAlpha, 'A tour name must only contain character']
     },
     slug: String,
     duration:{
@@ -45,7 +49,19 @@ const tourSchema = new Mongoose.Schema({
         required:[true, 'A tour must have price']
     },
     priceDiscount:{
-        type: Number
+        type: Number,
+        //custom validator: will validate priceDiscount will be less than price
+        //val: price discount value
+        //from custom validator will return true or false
+        //if its false then it will trigger validation error
+        validate: {
+          validator:  function(val){
+            ////this will point only for creating new document not for update document
+            return val < this.price; //100 < 200 //true else false
+        },
+        //message having access of val i.e VALUE => val
+        message: 'Discount price ({VALUE}) should be less than regular price value'
+    }
     },
     summary: {
         type: String,
