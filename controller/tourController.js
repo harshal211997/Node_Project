@@ -1,13 +1,14 @@
 const Tour = require('../models/tourModels')
 const createApiFeature = require('../utils/tourApiFeatureUtil.js')
+const catchAsync = require('../utils/catchAsync.js')
+const AppError = require('../utils/appError.js')
 //middle ware for top5Tours as a API alies name
 exports.topFiveTour = (req,res, next) =>{
     req.query.limit = '5';
     req.query.sort = '-ratingAverage,price'
     next();
 }
-exports.getAllTour = async (req,res)=>{
-    try{
+exports.getAllTour = catchAsync(async (req,res, next)=>{
         const apiFeature = new createApiFeature(Tour.find(),req.query);
         apiFeature
         .filter()
@@ -22,34 +23,23 @@ exports.getAllTour = async (req,res)=>{
             tours
         }
     })
-}catch(err){
-    res.status(404).json({
-        status:'fail',
-        message:err.message
-    })
-}
-};
-exports.getTour =  async (req,res)=>{
-    try{
+});
+exports.getTour =  catchAsync(async (req,res, next)=>{
     //db.tours.findOne({_id: req.params.id})
     const tour = await Tour.findById(req.params.id);
+    //if tour not found will set correct message for user
+    if(!tour){
+        return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
+    }
     res.status(200).json({
         status:'success',
         data:{
             tour
         }
     })
-    }
-    catch(err){
-        res.status(404).json({
-            status: 'fail',
-            message:'Data not found!'
-        })
-    }
 
-}
-exports.createTour = async (req,res)=>{
-    try{
+});
+exports.createTour = catchAsync(async (req,res, next)=>{
             const newTour = await Tour.create(req.body);
             res.status(201).json({
                 status:'sucess',
@@ -57,49 +47,36 @@ exports.createTour = async (req,res)=>{
                     tour: newTour
                 }
             })
-    }catch(err){
-        res.status(400).json({
-            status: 'fail',
-            message: err
-        })
-    }
-}
+});
 //Update Tour: PTACH:
-exports.updateTour = async (req,res)=>{
-    try{
+exports.updateTour = catchAsync(async (req,res)=>{
         const tour = await Tour.findByIdAndUpdate(req.params.id, req.body,{
             new: true,
             runValidators: true
         });
+         //if tour not found will set correct message for user
+    if(!tour){
+        return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
+    }
         res.status(200).json({
             status:'sucess',
             tour,
         })
-    }catch(err){
-        res.status(400).json({
-            status:'fail',
-            message: err
-        })
-    }
-}
+})
 //delte Tour:
-exports.deleteTour = async (req,res) => {
-    try{
-        await Tour.findByIdAndDelete(req.params.id);
+exports.deleteTour = catchAsync(async (req,res, next) => {
+        const tour = await Tour.findByIdAndDelete(req.params.id);
+         //if tour not found will set correct message for user
+    if(!tour){
+        return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
+    }
         res.status(200).json({
             status:'sucess',
             data: null
         })
-    }catch(err){
-        res.status(400).json(({
-            status: 'fail',
-            message: err.message
-        }))
-    }
-};
+});
 
-exports.getTourStats = async (req,res) =>{
-    try {
+exports.getTourStats = catchAsync(async (req,res, next) =>{
         const stats = await Tour.aggregate([
             {
                 $match : {ratingAverage: {$gte : 4.5}}
@@ -130,17 +107,10 @@ exports.getTourStats = async (req,res) =>{
         res.status(200).json({
             status: 'sucess',
             stats
-        })
-    }catch(err){
-        res.status(400).json({
-            status: 'fail',
-            message: err.message
-        })
-    }
-}
+        });
+});
 
-exports.getMonthlyPlan = async (req, res) => {
-    try{
+exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
         const year = req.params.year * 1;
         const plan = await Tour.aggregate([
             //unwind will seprate out documnent on given field(but that need to be an array)
@@ -187,11 +157,5 @@ exports.getMonthlyPlan = async (req, res) => {
             status: 'sucess',
             resultLength: plan.length,
             data: plan
-        })
-    }catch(err){
-        res.status(400).json({
-            status: 'fail',
-            message: err.message
-        })
-    }
-}
+        });
+});

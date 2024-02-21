@@ -30,8 +30,8 @@ const tourSchema = new Mongoose.Schema({
         //data validator: difficulty either be easy, medium, difficulty
         //we can't able to add error message in enum so will use object
         enum: {
-           values: ['easy','medium', 'difficulty'],
-           message: 'Difficulty either easy, medium or difficulty'
+           values: ['easy','medium', 'difficult'],
+           message: 'Difficulty either easy, medium or difficult'
         }
     },
     ratingAverage:{
