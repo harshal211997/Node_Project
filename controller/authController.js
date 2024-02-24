@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('./../utils/catchAsync.js');
 const AppError = require('./../utils/appError.js');
@@ -13,12 +14,7 @@ const signToken = (id) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
+  const newUser = await User.create(req.body);
   //calling jwt token function
   const token = signToken(newUser._id);
   res.status(201).json({
@@ -62,3 +58,65 @@ exports.login = catchAsync(async (req, res, next) => {
     token,
   });
 });
+
+//Authentication
+// secure protacting all routes with authenticate : this function will use as a middle ware for calling all tours api
+//and will authonticate user using jwt token
+exports.protect = catchAsync(async (req, res, next) => {
+  //1.Getting token check if its there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please login to get access', 401)
+    );
+  }
+  //2. validate token: if someone manipulated or token expires
+  //if token is invalid then it will goes to gloel error handler
+  //verify: it will decode payload, headers and secret key from provided token and create signiture
+  // by provided secrete key parameter and from header, payload from token test signiture will create
+  //last two signature will cpmpared and verify if not correct then give token expired or token invalid error
+  //if someone modify token by decoding as id change then secrete will chnage and it will fail in compare signature
+  const decoded = await jwt.verify(token, process.env.JWT_SECRET); // return a decoded token with id and all other parameter
+  //3.Check if user still exists: what if user has deleted mean time or what if user chnaged pass after token inited, bith will not work
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    // user deleted
+    return next(
+      new AppError('The user belong to this token does no longer exists.', 401)
+    );
+  }
+  //4.Check if userr changes password after the token was issued
+  //decoded.iat is JWT created time which is under payload
+  //changePasswordAfter method available in hole user schema
+  if (freshUser.changePasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password!, Please login again', 401)
+    );
+  }
+  //Grant access to protected route
+  req.user = freshUser;
+  next();
+});
+
+//Authorization: check if certain user allowed to access certain data
+//restirct routes: deleteing tours allowed for certain user
+//we want to pass role in middleware so directlly it is not possible
+//so we used rest patern and then returned new fun with reqn res and next
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    //roles is an array ['admin', 'lead-guid']
+    //we have set user property in request at grant user ub protect user, so first protect user will run and after sucess that restrict will run
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You Do not have permission to perform this action', 403) // 403: authorization status code
+      );
+    }
+    next();
+  };
+};
