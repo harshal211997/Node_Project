@@ -1,8 +1,8 @@
-const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('./../utils/catchAsync.js');
 const AppError = require('./../utils/appError.js');
 const User = require('./../models/usersModel.js');
+const sendEmail = require('./../utils/email.js');
 
 //creating json web token fucntion:
 //for creating jwt token we need to pass payload: id and secrect ket which will be anything
@@ -120,3 +120,52 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  //1.Get user based on posted email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with email address.', 404));
+  }
+  //2.Genrate random reset token
+  const resetToken = user.createPasswordResetToken();
+  //we just modified passwordRestToken and passwordResetExpire field we are saving here in DB
+  await user.save({ validateBeforeSave: false });
+  //3.Sent it back as an email
+  //defining reset URL which will send to email using forgot pass api
+  //req.protocol = http://
+  //req.get('host) = localhost
+  const resetURL = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${resetToken}`;
+  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfiorm to:${resetURL}\n If you didn't forgot your password, please ignore this email!`;
+
+  //calling sendEmail which will retuen promise
+  //sendEmail will pass with emailOptions
+  //will handle seprate try catch block for error handling
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your Password reset tocken (valid for 10min)',
+      message: message,
+    });
+    res.status(200).json({
+      status: 'sucess',
+      message: 'Token send to email',
+    });
+  } catch (err) {
+    user.passwordRestToken = undefined;
+    user.passwordResetExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    //global error
+    console.log(err);
+    return next(
+      new AppError(
+        'There was an error while sending email. Try again leter!',
+        500
+      )
+    );
+  }
+});
+
+exports.resetPassword = (req, res, next) => {};

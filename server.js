@@ -24,6 +24,14 @@ mongoose
   });
 const app = require('./app.js');
 const port = process.env.PORT || 3000;
+
+//checking request headers middleware
+// app.use((req, res, next) => {
+//   req.requestTime = new Date().toISOString();
+//   console.log(req.headers);
+//   next();
+// });
+
 //routing
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);

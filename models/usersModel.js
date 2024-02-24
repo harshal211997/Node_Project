@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 //node package for password encryptions
@@ -48,6 +49,12 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangeAt: Date,
+  passwordRestToken: {
+    type: String,
+  },
+  passwordResetExpire: {
+    type: Date,
+  },
 });
 
 //Password encryption: using pre save document middleware
@@ -93,6 +100,24 @@ userSchema.methods.changePasswordAfter = function (JWTTimestamp) {
   }
   //false means not changed
   return false;
+};
+//adding new instance method for createPass token
+userSchema.methods.createPasswordResetToken = function () {
+  //will use crypto node module to create token in hex form
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  //encrypting token
+  //saving encrypted token to DB
+  //here we saved encrypted (passwordRestToken) in DB by which no one can able to hack and reset password
+  this.passwordRestToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, { passwordRestToken: this.passwordRestToken });
+  //need to give 10min time to reset password (10 * 60 * 1000)ms
+  this.passwordResetExpire = Date.now() + 10 * 60 * 1000;
+  //return token via emai;
+  return resetToken;
 };
 //model:
 const User = mongoose.model('User', userSchema);
