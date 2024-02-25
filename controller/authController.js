@@ -3,6 +3,7 @@ const catchAsync = require('./../utils/catchAsync.js');
 const AppError = require('./../utils/appError.js');
 const User = require('./../models/usersModel.js');
 const sendEmail = require('./../utils/email.js');
+const crypto = require('crypto');
 
 //creating json web token fucntion:
 //for creating jwt token we need to pass payload: id and secrect ket which will be anything
@@ -168,4 +169,37 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  //1.Get user based on token
+  //we need to compare encryoted token saved in DB so we will encrypt the token coming from URL.
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  //geeting user based on token and checking the token is not expired
+  //if passwordResetExpire > curent time then pass reset session is expired
+  const user = await User.findOne({
+    passwordRestToken: hashedToken,
+    passwordResetExpire: { $gt: Date.now() },
+  });
+  //2.If token has not expire, and there is user, set the new password
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  //set token propert undefiend to remove it from DB
+  user.passwordRestToken = undefined;
+  user.passwordResetExpire = undefined;
+  //we have modified pass but not saved, we need to save it
+  //no need to turn off validator
+  await user.save();
+  //3.Update changedPasswordAt property for the user
+  //used pre document save in userModel file
+  //4.Log the user in, sent JWT
+  const token = signToken(user._id);
+  res.status(200).json({
+    status: 'sucess',
+    token,
+  });
+});

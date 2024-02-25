@@ -56,7 +56,15 @@ const userSchema = new mongoose.Schema({
     type: Date,
   },
 });
-
+//middleware to save passwordChangeAt before save
+userSchema.pre('save', function (next) {
+  //if password is not modified and document not new doc then we will not add passwordChangeAt property
+  if (!this.isModified('password') || this.isNew) {
+    return next();
+  }
+  this.passwordChangeAt = Date.now() - 1000;
+  next();
+});
 //Password encryption: using pre save document middleware
 //this will happen between a movement where we recive a data and before save it into DB
 userSchema.pre('save', async function (next) {
