@@ -55,6 +55,11 @@ const userSchema = new mongoose.Schema({
   passwordResetExpire: {
     type: Date,
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 //middleware to save passwordChangeAt before save
 userSchema.pre('save', function (next) {
@@ -86,7 +91,12 @@ userSchema.pre('save', async function (next) {
     next();
   }
 });
-
+//query middleware to hide user which are inactive
+//this query middle ware will run for all find query
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 //instance methods: adding our own createPasswords methods to encrypt the user typed password to check it at the time of login
 //we are added a correctPassword methods which will available for all user documents
 userSchema.methods.correctPasswords = async function (
