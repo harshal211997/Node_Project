@@ -13,18 +13,20 @@ const signToken = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
-
-exports.signUp = catchAsync(async (req, res, next) => {
-  const newUser = await User.create(req.body);
-  //calling jwt token function
-  const token = signToken(newUser._id);
-  res.status(201).json({
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  res.status(statusCode).json({
     status: 'sucess',
     token,
     data: {
-      user: newUser,
+      user,
     },
   });
+};
+exports.signUp = catchAsync(async (req, res, next) => {
+  const newUser = await User.create(req.body);
+  //calling jwt token function
+  createSendToken(newUser, 200, res);
 });
 //login
 exports.login = catchAsync(async (req, res, next) => {
@@ -53,11 +55,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
   //3.if everything ok send jwt back to client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'sucess',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
 
 //Authentication
@@ -193,13 +191,27 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpire = undefined;
   //we have modified pass but not saved, we need to save it
   //no need to turn off validator
-  await user.save();
+  const newUser = await user.save();
   //3.Update changedPasswordAt property for the user
   //used pre document save in userModel file
   //4.Log the user in, sent JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'sucess',
-    token,
-  });
+  createSendToken(newUser, 200, res);
+});
+
+//update password functionallity for loged in user
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  //1.Get user from collection
+  //will find user by user property which we set on autentication req.user = freshUser
+  const user = await User.findById(req.user.id).select('+password');
+  //2.check posted pass is correct
+  //will call correctPasswords instance method from user model to check current password is correct with typed pass
+  if (!(await user.correctPasswords(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong!', 401));
+  }
+  //3.if pass correct then update pass
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.newPasswordConfirm;
+  const newUser = await user.save();
+  //4.log user in, send JWT token
+  createSendToken(newUser, 201, res);
 });
