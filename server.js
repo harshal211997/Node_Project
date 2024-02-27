@@ -4,6 +4,8 @@ const userRouter = require('./router/userRouter.js');
 const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controller/errorController.js');
 const dotEnv = require('dotenv');
+//rate limit package is used to limit the api request coming from one IP
+const rateLimit = require('express-rate-limit');
 
 dotEnv.config({ path: './config.env' });
 console.log(process.env.NODE_ENV);
@@ -32,6 +34,18 @@ const port = process.env.PORT || 3000;
 //   next();
 // });
 
+//Global middleware:rate limit
+//rateLimit is a function which will take a limit options
+//this will help use the root force attack from hackers
+const limiter = rateLimit({
+  //we are limited 100 request from one IP in 1hr
+  max: 3,
+  windowMs: 60 * 60 * 1000,
+  //message if limit cross
+  message: 'To many request from this IP, please try again after an hour!',
+});
+//applying limiter middleware for all request coming from /api
+app.use('/api', limiter);
 //routing
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
