@@ -6,6 +6,8 @@ const globalErrorHandler = require('./controller/errorController.js');
 const dotEnv = require('dotenv');
 //rate limit package is used to limit the api request coming from one IP
 const rateLimit = require('express-rate-limit');
+//http secure package
+const helmet = require('helmet');
 
 dotEnv.config({ path: './config.env' });
 console.log(process.env.NODE_ENV);
@@ -33,6 +35,9 @@ const port = process.env.PORT || 3000;
 //   console.log(req.headers);
 //   next();
 // });
+
+//http secure: Global middleware
+app.use(helmet());
 
 //Global middleware:rate limit
 //rateLimit is a function which will take a limit options
