@@ -1,13 +1,16 @@
 const mongoose = require('mongoose');
-const tourRouter = require('./router/tourRouter.js');
-const userRouter = require('./router/userRouter.js');
-const AppError = require('./utils/appError.js');
-const globalErrorHandler = require('./controller/errorController.js');
 const dotEnv = require('dotenv');
 //rate limit package is used to limit the api request coming from one IP
 const rateLimit = require('express-rate-limit');
 //http secure package
 const helmet = require('helmet');
+//NoSQL Query Sanitize package
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const tourRouter = require('./router/tourRouter.js');
+const userRouter = require('./router/userRouter.js');
+const AppError = require('./utils/appError.js');
+const globalErrorHandler = require('./controller/errorController.js');
 
 dotEnv.config({ path: './config.env' });
 console.log(process.env.NODE_ENV);
@@ -51,6 +54,11 @@ const limiter = rateLimit({
 });
 //applying limiter middleware for all request coming from /api
 app.use('/api', limiter);
+//Data sanitizer againts NoSQL Query injection
+//it will return a middleware fucntion which will look request body, request param and request query string nd it will look around all $ sign and remove it and give error
+app.use(mongoSanitize());
+//Data Sanitize againts XSS: html
+app.use(xss());
 //routing
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
