@@ -47,7 +47,7 @@ app.use(helmet());
 //this will help use the root force attack from hackers
 const limiter = rateLimit({
   //we are limited 100 request from one IP in 1hr
-  max: 3,
+  max: 10,
   windowMs: 60 * 60 * 1000,
   //message if limit cross
   message: 'To many request from this IP, please try again after an hour!',
