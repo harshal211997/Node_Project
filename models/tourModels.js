@@ -145,7 +145,12 @@ const tourSchema = new Mongoose.Schema(
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
-
+//virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'review',
+  foreignField: 'tour', //field from reviewModel
+  localField: '_id', //local field from tourModel
+});
 //Document Middleware is monggose middleware: runs only for .save() and .create() command
 //to see any document save before DB we will use pre Document middleware
 tourSchema.pre('save', function (next) {

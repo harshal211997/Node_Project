@@ -23,7 +23,7 @@ exports.getAllTour = catchAsync(async (req, res, next) => {
 exports.getTour = catchAsync(async (req, res, next) => {
   //db.tours.findOne({_id: req.params.id})
   //populate() is used to get guides data along with tour
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate('reviews');
   //if tour not found will set correct message for user
   if (!tour) {
     return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));

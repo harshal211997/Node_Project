@@ -9,6 +9,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const tourRouter = require('./router/tourRouter.js');
 const userRouter = require('./router/userRouter.js');
+const reviewRouter = require('./router/reviewRoutes.js');
 const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controller/errorController.js');
 
@@ -62,6 +63,7 @@ app.use(xss());
 //routing
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/review', reviewRouter);
 
 //Handling unhandled Routes:
 //if someone hit wrong url then after all middleware it will come to this route and send back response
