@@ -2,6 +2,7 @@ const User = require('./../models/usersModel');
 const catchAsync = require('./../utils/catchAsync');
 const authController = require('./../controller/authController.js');
 const AppError = require('./../utils/appError.js');
+const factory = require('./../controller/handlerFactory.js');
 
 const filterObj = (obj, ...allFields) => {
   const newObj = {};
@@ -63,3 +64,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+//Do Not update password with this
+exports.updatedUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);

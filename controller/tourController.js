@@ -2,6 +2,7 @@ const Tour = require('../models/tourModels');
 const createApiFeature = require('../utils/tourApiFeatureUtil.js');
 const catchAsync = require('../utils/catchAsync.js');
 const AppError = require('../utils/appError.js');
+const factory = require('./../controller/handlerFactory.js');
 //middle ware for top5Tours as a API alies name
 exports.topFiveTour = (req, res, next) => {
   req.query.limit = '5';
@@ -35,42 +36,22 @@ exports.getTour = catchAsync(async (req, res, next) => {
     },
   });
 });
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  res.status(201).json({
-    status: 'sucess',
-    data: {
-      tour: newTour,
-    },
-  });
-});
+exports.createTour = factory.createOne(Tour);
 //Update Tour: PTACH:
-exports.updateTour = catchAsync(async (req, res) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  //if tour not found will set correct message for user
-  if (!tour) {
-    return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
-  }
-  res.status(200).json({
-    status: 'sucess',
-    tour,
-  });
-});
+exports.updateTour = factory.updateOne(Tour);
 //delte Tour:
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-  //if tour not found will set correct message for user
-  if (!tour) {
-    return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
-  }
-  res.status(200).json({
-    status: 'sucess',
-    data: null,
-  });
-});
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
+//   //if tour not found will set correct message for user
+//   if (!tour) {
+//     return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
+//   }
+//   res.status(200).json({
+//     status: 'sucess',
+//     data: null,
+//   });
+// });
+exports.deleteTour = factory.deleteOne(Tour);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
