@@ -1,5 +1,4 @@
 const Tour = require('../models/tourModels');
-const createApiFeature = require('../utils/tourApiFeatureUtil.js');
 const catchAsync = require('../utils/catchAsync.js');
 const AppError = require('../utils/appError.js');
 const factory = require('./../controller/handlerFactory.js');
@@ -9,33 +8,8 @@ exports.topFiveTour = (req, res, next) => {
   req.query.sort = '-ratingAverage,price';
   next();
 };
-exports.getAllTour = catchAsync(async (req, res, next) => {
-  const apiFeature = new createApiFeature(Tour.find(), req.query);
-  apiFeature.filter().sort().limitField().paginate();
-  const tours = await apiFeature.query;
-  res.status(200).json({
-    status: 'success',
-    result: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
-exports.getTour = catchAsync(async (req, res, next) => {
-  //db.tours.findOne({_id: req.params.id})
-  //populate() is used to get guides data along with tour
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-  //if tour not found will set correct message for user
-  if (!tour) {
-    return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+exports.getAllTour = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.createTour = factory.createOne(Tour);
 //Update Tour: PTACH:
 exports.updateTour = factory.updateOne(Tour);

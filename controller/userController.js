@@ -14,16 +14,7 @@ const filterObj = (obj, ...allFields) => {
   return newObj;
 };
 
-exports.getAllUser = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: 'sucess',
-    result: users.length,
-    data: {
-      users,
-    },
-  });
-});
+exports.getAllUser = factory.getAll(User);
 
 //Updating existing data from use
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -65,6 +56,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getUser = factory.getOne(User);
 //Do Not update password with this
 exports.updatedUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
