@@ -14,6 +14,11 @@ const filterObj = (obj, ...allFields) => {
   return newObj;
 };
 
+//getMe middleware:
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 exports.getAllUser = factory.getAll(User);
 
 //Updating existing data from use

@@ -2,6 +2,7 @@ const express = require('express');
 const tour = require('../controller/tourController.js');
 const router = express.Router();
 const authController = require('./../controller/authController.js');
+const reviewRouter = require('./../router/reviewRoutes.js');
 
 //Alies name router
 //If we want to fetch data for top 5 tours with ratingAgerage Desc and for same ratingAverage sort by price
@@ -27,5 +28,6 @@ router
     authController.restrictTo('admin', 'lead-guid'),
     tour.deleteTour
   );
-
+//Nested review route
+router.use('/:tourId/reviews', reviewRouter);
 module.exports = router;
