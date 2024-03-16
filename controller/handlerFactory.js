@@ -18,7 +18,7 @@ exports.deleteOne = (Model) =>
   });
 
 exports.updateOne = (model) =>
-  catchAsync(async (req, res) => {
+  catchAsync(async (req, res, next) => {
     const doc = await model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

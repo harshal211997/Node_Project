@@ -42,7 +42,7 @@ const tourSchema = new Mongoose.Schema(
       min: [1, 'Rating must be above 1.0'], //data validator
       max: [5, 'Rating must be below 5.0'], //data validator
     },
-    ratingQuantity: {
+    ratingsQuantity: {
       type: Number,
       default: 0,
     },
