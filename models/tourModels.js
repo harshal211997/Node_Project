@@ -36,7 +36,7 @@ const tourSchema = new Mongoose.Schema(
         message: 'Difficulty either easy, medium or difficult',
       },
     },
-    ratingAverage: {
+    ratingsAverage: {
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1.0'], //data validator
@@ -139,7 +139,15 @@ const tourSchema = new Mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-
+/*
+//adding Index on price field to get good performance
+//1 means sort by ascending order while -1 means descending order
+//single index
+tourSchema.index({ price: 1 });
+*/
+//compound index:
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
 //virtual property: to set some property modified which outside a database
 //need to use regular function insted of arrow because arrow function does not have this keyword
 tourSchema.virtual('durationWeeks').get(function () {

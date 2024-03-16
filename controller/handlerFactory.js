@@ -78,7 +78,7 @@ exports.getAll = (model) =>
     }
     const apiFeature = new createApiFeature(model.find(filter), req.query);
     apiFeature.filter().sort().limitField().paginate();
-    const doc = await apiFeature.query;
+    const doc = await apiFeature.query; //.explain();
     res.status(200).json({
       status: 'success',
       result: doc.length,
