@@ -5,6 +5,8 @@ const express = require('express');
 //so we need to specify it in form of object
 const router = express.Router({ mergeParams: true });
 
+//prtecting all routes
+router.use(authController.protect);
 router
   .route('/')
   .get(reviewController.getAllReviews)
@@ -18,7 +20,15 @@ router
 router
   .route('/:id')
   .get(reviewController.getReview)
-  .delete(reviewController.deleteReview)
-  .patch(reviewController.updateReview);
+  .delete(
+    authController.protect,
+    authController.restrictTo('user', 'admin'),
+    reviewController.deleteReview
+  )
+  .patch(
+    authController.protect,
+    authController.restrictTo('user', 'admin'),
+    reviewController.updateReview
+  );
 
 module.exports = router;

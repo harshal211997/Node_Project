@@ -11,17 +11,31 @@ router.route('/top-5-tours').get(tour.topFiveTour, tour.getAllTour);
 
 //aggergation api
 router.route('/tours-stats').get(tour.getTourStats);
-router.route('/monthly-plan/:year').get(tour.getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guid'),
+    tour.getMonthlyPlan
+  );
 //tours router
 //will use middle ware to authenticate
 router
   .route('/')
-  .get(authController.protect, tour.getAllTour)
-  .post(tour.createTour);
+  .get(tour.getAllTour)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tour.createTour
+  );
 router
   .route('/:id')
   .get(tour.getTour)
-  .patch(tour.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guid'),
+    tour.updateTour
+  )
   //for deleting tour first we are validating user with protect middleware and then we are checking userRole. if userRole is either admin or lead-guid then only we are giving permission to delete tour
   .delete(
     authController.protect,

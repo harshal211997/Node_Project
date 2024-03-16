@@ -72,6 +72,7 @@ userSchema.pre('save', function (next) {
 });
 //Password encryption: using pre save document middleware
 //this will happen between a movement where we recive a data and before save it into DB
+
 userSchema.pre('save', async function (next) {
   //only encypt password when only password field updated
   //and only on new new user password
@@ -91,6 +92,7 @@ userSchema.pre('save', async function (next) {
     next();
   }
 });
+
 //query middleware to hide user which are inactive
 //this query middle ware will run for all find query
 userSchema.pre(/^find/, function (next) {
