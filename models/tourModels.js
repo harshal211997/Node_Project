@@ -153,6 +153,9 @@ tourSchema.index({ price: 1 });
 //compound index:
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+//geoSpecial index for finding tours within given range
+tourSchema.index({ startLocation: '2dsphere' });
+
 //virtual property: to set some property modified which outside a database
 //need to use regular function insted of arrow because arrow function does not have this keyword
 tourSchema.virtual('durationWeeks').get(function () {

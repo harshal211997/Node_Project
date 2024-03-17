@@ -11,6 +11,10 @@ router.route('/top-5-tours').get(tour.topFiveTour, tour.getAllTour);
 
 //aggergation api
 router.route('/tours-stats').get(tour.getTourStats);
+//
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(tour.getTourWithin);
 router
   .route('/monthly-plan/:year')
   .get(

@@ -13,19 +13,29 @@ exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.createTour = factory.createOne(Tour);
 //Update Tour: PTACH:
 exports.updateTour = factory.updateOne(Tour);
-//delte Tour:
-// exports.deleteTour = catchAsync(async (req, res, next) => {
-//   const tour = await Tour.findByIdAndDelete(req.params.id);
-//   //if tour not found will set correct message for user
-//   if (!tour) {
-//     return next(new AppError(`No Tour Found For ID : ${req.params.id}`, 404));
-//   }
-//   res.status(200).json({
-//     status: 'sucess',
-//     data: null,
-//   });
-// });
 exports.deleteTour = factory.deleteOne(Tour);
+
+//
+exports.getTourWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  //converting our distance to radius
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+  if (!lat || !lng) {
+    next(new AppError('Please provide lat, lng', 400));
+  }
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+
+  res.status(200).json({
+    status: 'sucess',
+    result: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
