@@ -41,6 +41,11 @@ const tourSchema = new Mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'], //data validator
       max: [5, 'Rating must be below 5.0'], //data validator
+      //set function(custome function) run each time when value recived for ratingsAverage
+      //Math.round will give value without decimal so will multiply by 10 again divide by 10
+      //e,.g.: 4.6666 => Math.round(4.6666)=> 4
+      //so, 4.6666 * 10 => Math.round(46.666) => 46 => 46/ 10 => 4.6
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,

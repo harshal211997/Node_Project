@@ -31,6 +31,11 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+//indexing
+//as we know for each tour one user can add only one review
+//to achive this combination will use compound index with object peropert as unique
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 //populate data: populating tour and user data along with review
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
